@@ -1,7 +1,10 @@
 using Dometrain.Monolith.Api.Enrollments;
 using Dometrain.Monolith.Api.Students;
+using MassTransit;
 
 namespace Dometrain.Monolith.Api.Orders;
+
+public record OrderPlaced(Guid OrderId, Guid StudentId, IEnumerable<Guid> CourseIds);
 
 public interface IOrderService
 {
@@ -15,14 +18,14 @@ public interface IOrderService
 public class OrderService : IOrderService
 {
     private readonly IOrderRepository _orderRepository;
-    private readonly IEnrollmentService _enrollmentService;
     private readonly IStudentRepository _studentRepository;
+    private readonly IBus _bus;
     
-    public OrderService(IOrderRepository orderRepository, IStudentRepository studentRepository, IEnrollmentService enrollmentService)
+    public OrderService(IOrderRepository orderRepository, IStudentRepository studentRepository, IBus bus)
     {
         _orderRepository = orderRepository;
         _studentRepository = studentRepository;
-        _enrollmentService = enrollmentService;
+        _bus = bus;
     }
 
     public async Task<Order?> GetByIdAsync(Guid orderId)
@@ -50,12 +53,7 @@ public class OrderService : IOrderService
             return null;
         }
 
-        var enrollments = await _enrollmentService.GetStudentEnrollmentsAsync(studentId);
-        
-        foreach (var courseId in order.CourseIds.Where(x => !enrollments!.CourseIds.Contains(x)))
-        {
-            await _enrollmentService.EnrollToCourseAsync(studentId, courseId);
-        }
+        await _bus.Publish(new OrderPlaced(order.Id, order.StudentId, order.CourseIds));
 
         return order;
     }

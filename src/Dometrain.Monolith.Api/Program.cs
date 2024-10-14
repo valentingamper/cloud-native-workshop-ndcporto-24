@@ -9,6 +9,7 @@ using Dometrain.Monolith.Api.Orders;
 using Dometrain.Monolith.Api.ShoppingCarts;
 using Dometrain.Monolith.Api.Students;
 using FluentValidation;
+using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
@@ -77,7 +78,9 @@ builder.Services.AddSingleton<CourseRepository>();
 builder.Services.AddSingleton<ICourseRepository>(x =>
     new CachedCourseRepository(x.GetRequiredService<CourseRepository>(), x.GetRequiredService<IConnectionMultiplexer>()));
 
-builder.Services.AddSingleton<IShoppingCartRepository, ShoppingCartRepository>();
+builder.Services.AddSingleton<ShoppingCartRepository>();
+builder.Services.AddSingleton<IShoppingCartRepository>(x =>
+    new CachedShoppingCartRepository(x.GetRequiredService<ShoppingCartRepository>(), x.GetRequiredService<IConnectionMultiplexer>()));
 builder.Services.AddSingleton<IShoppingCartService, ShoppingCartService>();
 
 builder.Services.AddSingleton<IEnrollmentRepository, EnrollmentRepository>();
@@ -85,6 +88,16 @@ builder.Services.AddSingleton<IEnrollmentService, EnrollmentService>();
 
 builder.Services.AddSingleton<IOrderRepository, OrderRepository>();
 builder.Services.AddSingleton<IOrderService, OrderService>();
+
+builder.Services.AddMassTransit(s =>
+{
+    s.AddConsumers(typeof(Program).Assembly);
+    s.UsingRabbitMq((context, cfg) =>
+    {
+        cfg.Host(new Uri(config["ConnectionStrings:rabbitmq"]!));
+        cfg.ConfigureEndpoints(context);
+    });
+});
 
 var app = builder.Build();
 
