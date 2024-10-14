@@ -18,6 +18,8 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 var builder = WebApplication.CreateBuilder(args);
 
 var config = builder.Configuration;
+
+builder.AddServiceDefaults();
     
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
@@ -56,8 +58,10 @@ builder.Services.AddValidatorsFromAssemblyContaining<Program>(ServiceLifetime.Si
 
 builder.Services.Configure<IdentitySettings>(builder.Configuration.GetSection(IdentitySettings.SettingsKey));
 
+builder.AddNpgsqlDataSource("dometrain");
+
 builder.Services.AddSingleton<DbInitializer>();
-builder.Services.AddSingleton<IDbConnectionFactory>(_ => new NpgsqlConnectionFactory(config["Database:ConnectionString"]!));
+builder.Services.AddSingleton<IDbConnectionFactory, NpgsqlConnectionFactory>();
 
 builder.Services.AddSingleton<IPasswordHasher<Student>, PasswordHasher<Student>>();
 builder.Services.AddSingleton<IIdentityService, IdentityService>();
@@ -84,6 +88,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.MapDefaultEndpoints();
 
 app.UseExceptionHandler();
 
