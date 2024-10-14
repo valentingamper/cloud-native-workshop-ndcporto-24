@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using StackExchange.Redis;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -60,6 +61,7 @@ builder.Services.Configure<IdentitySettings>(builder.Configuration.GetSection(Id
 
 builder.AddNpgsqlDataSource("dometrain");
 builder.AddAzureCosmosClient("cosmosdb");
+builder.AddRedisClient("redis");
 
 builder.Services.AddSingleton<DbInitializer>();
 builder.Services.AddSingleton<IDbConnectionFactory, NpgsqlConnectionFactory>();
@@ -71,7 +73,9 @@ builder.Services.AddSingleton<IStudentService, StudentService>();
 builder.Services.AddSingleton<IStudentRepository, StudentRepository>();
 
 builder.Services.AddSingleton<ICourseService, CourseService>();
-builder.Services.AddSingleton<ICourseRepository, CourseRepository>();
+builder.Services.AddSingleton<CourseRepository>();
+builder.Services.AddSingleton<ICourseRepository>(x =>
+    new CachedCourseRepository(x.GetRequiredService<CourseRepository>(), x.GetRequiredService<IConnectionMultiplexer>()));
 
 builder.Services.AddSingleton<IShoppingCartRepository, ShoppingCartRepository>();
 builder.Services.AddSingleton<IShoppingCartService, ShoppingCartService>();
