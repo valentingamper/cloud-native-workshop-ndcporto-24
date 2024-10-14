@@ -59,6 +59,7 @@ builder.Services.AddValidatorsFromAssemblyContaining<Program>(ServiceLifetime.Si
 builder.Services.Configure<IdentitySettings>(builder.Configuration.GetSection(IdentitySettings.SettingsKey));
 
 builder.AddNpgsqlDataSource("dometrain");
+builder.AddAzureCosmosClient("cosmosdb");
 
 builder.Services.AddSingleton<DbInitializer>();
 builder.Services.AddSingleton<IDbConnectionFactory, NpgsqlConnectionFactory>();
