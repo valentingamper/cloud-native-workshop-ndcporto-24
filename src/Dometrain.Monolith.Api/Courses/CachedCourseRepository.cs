@@ -35,12 +35,12 @@ public class CachedCourseRepository : ICourseRepository
 
     public Task<Course?> GetBySlugAsync(string slug)
     {
-        throw new NotImplementedException();
+        return _courseRepository.GetBySlugAsync(slug);
     }
 
     public Task<IEnumerable<Course>> GetAllAsync(string nameFilter, int pageNumber, int pageSize)
     {
-        throw new NotImplementedException();
+        return _courseRepository.GetAllAsync(nameFilter, pageNumber, pageSize);
     }
 
     public Task<Course?> UpdateAsync(Course course)
