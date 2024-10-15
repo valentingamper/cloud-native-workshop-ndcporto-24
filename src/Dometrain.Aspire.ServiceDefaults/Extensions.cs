@@ -78,6 +78,9 @@ public static class Extensions
             builder.Services.AddOpenTelemetry().UseOtlpExporter();
         }
 
+        builder.Services.AddOpenTelemetry().WithMetrics(metrics => 
+            metrics.AddPrometheusExporter(options => options.DisableTotalNameSuffixForCounters = true));
+
         // Uncomment the following lines to enable the Azure Monitor exporter (requires the Azure.Monitor.OpenTelemetry.AspNetCore package)
         //if (!string.IsNullOrEmpty(builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]))
         //{
@@ -112,6 +115,8 @@ public static class Extensions
                 Predicate = r => r.Tags.Contains("live")
             });
         }
+
+        app.MapPrometheusScrapingEndpoint();
 
         return app;
     }

@@ -22,10 +22,23 @@ var redis = builder.AddRedis("redis")
 var rabbitMq = builder.AddRabbitMQ("rabbitmq")
     .WithManagementPlugin();
 
+builder.AddContainer("prometheus", "prom/prometheus")
+    .WithBindMount("../../prometheus", "/etc/prometheus", isReadOnly:true)
+    .WithHttpEndpoint(port: 9090, targetPort: 9090);
+
+var grafana = builder.AddContainer("grafana", "grafana/grafana")
+    .WithBindMount("../../grafana/config", "/etc/grafana", isReadOnly: true)
+    .WithBindMount("../../grafana/dashboards", "/var/lib/grafana/dashboards", isReadOnly: true)
+    .WithHttpEndpoint(targetPort: 3000, name: "http");
+
+builder.AddProject<Projects.Dometrain_Cart_Processor>("dometrain-cart-processor")
+    .WithReference(cartDb);
+
 var mainApi = builder.AddProject<Projects.Dometrain_Monolith_Api>("dometrain-api")
     .WithReference(mainDb)
     .WithReference(redis)
     .WithReference(rabbitMq)
+    .WithEnvironment("GRAFANA_URL", grafana.GetEndpoint("http"))
     .WithReplicas(1);
 
 builder.AddProject<Projects.Dometrain_Cart_Api>("dometrain-cart-api")
