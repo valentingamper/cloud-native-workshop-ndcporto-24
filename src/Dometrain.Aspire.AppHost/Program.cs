@@ -22,11 +22,15 @@ var redis = builder.AddRedis("redis")
 var rabbitMq = builder.AddRabbitMQ("rabbitmq")
     .WithManagementPlugin();
 
-builder.AddProject<Projects.Dometrain_Monolith_Api>("dometrain-api")
+var mainApi = builder.AddProject<Projects.Dometrain_Monolith_Api>("dometrain-api")
     .WithReference(mainDb)
-    .WithReference(cartDb)
     .WithReference(redis)
     .WithReference(rabbitMq)
     .WithReplicas(1);
+
+builder.AddProject<Projects.Dometrain_Cart_Api>("dometrain-cart-api")
+    .WithReference(cartDb)
+    .WithReference(redis)
+    .WithEnvironment("MainApi__BaseUrl", mainApi.GetEndpoint("http"));
 
 builder.Build().Run();

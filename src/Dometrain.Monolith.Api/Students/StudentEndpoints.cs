@@ -1,3 +1,4 @@
+using Dometrain.Api.Shared.Identity;
 using Dometrain.Monolith.Api.Contracts;
 using Dometrain.Monolith.Api.Identity;
 

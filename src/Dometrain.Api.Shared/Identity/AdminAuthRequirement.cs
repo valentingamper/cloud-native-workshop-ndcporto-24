@@ -1,7 +1,8 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 
-namespace Dometrain.Monolith.Api.Identity;
+namespace Dometrain.Api.Shared.Identity;
 
 public class AdminAuthRequirement : IAuthorizationHandler, IAuthorizationRequirement
 {
